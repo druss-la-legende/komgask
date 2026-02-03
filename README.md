@@ -2,6 +2,8 @@
 
 Tampermonkey userscript for quick Komga series search with keyboard shortcut.
 
+![Screenshot](screenshot.png)
+
 ## Features
 
 - **Global shortcut** (Ctrl+Y) works on any website
