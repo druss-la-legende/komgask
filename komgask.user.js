@@ -18,6 +18,44 @@
     const KOMGA_API_KEY = '';                     // Votre API Key Komga (Settings > Users > API Key)
     const SHORTCUT_KEY = 'y';                    // Touche du raccourci
     const SHORTCUT_MODIFIER = 'ctrlKey';         // Modificateur: ctrlKey, altKey, shiftKey
+    const LANG = 'fr';                           // Langue: 'fr' ou 'en'
+
+    // === TRANSLATIONS ===
+    const i18n = {
+        fr: {
+            back: '← Retour',
+            searchPlaceholder: 'Rechercher une série...',
+            typeToSearch: 'Tapez pour rechercher une série',
+            loading: 'Chargement...',
+            connectionError: 'Erreur de connexion à Komga: ',
+            noSeries: 'Aucune série trouvée',
+            noBooks: 'Aucun tome trouvé',
+            volumes: (n) => `${n} tome(s)`,
+            booksOf: (name) => `Tomes de: ${name}`,
+            booksLoadError: 'Erreur lors du chargement des tomes: ',
+            booksStatus: (n) => `${n} tome(s) - Ordre décroissant`,
+            statusBar: 'Ctrl+Y pour ouvrir | ↑↓ navigation | Enter sélectionner | Esc fermer',
+            pages: 'pages',
+            consoleLoaded: 'Komga Search chargé. Appuyez sur Ctrl+Y pour ouvrir.',
+        },
+        en: {
+            back: '← Back',
+            searchPlaceholder: 'Search a series...',
+            typeToSearch: 'Type to search for a series',
+            loading: 'Loading...',
+            connectionError: 'Connection error to Komga: ',
+            noSeries: 'No series found',
+            noBooks: 'No books found',
+            volumes: (n) => `${n} volume(s)`,
+            booksOf: (name) => `Volumes of: ${name}`,
+            booksLoadError: 'Error loading volumes: ',
+            booksStatus: (n) => `${n} volume(s) - Descending order`,
+            statusBar: 'Ctrl+Y to open | ↑↓ navigate | Enter select | Esc close',
+            pages: 'pages',
+            consoleLoaded: 'Komga Search loaded. Press Ctrl+Y to open.',
+        }
+    };
+    const t = i18n[LANG] || i18n.fr;
 
     // === STYLES ===
     GM_addStyle(`
@@ -249,7 +287,7 @@
                     if (response.status === 200) {
                         resolve(JSON.parse(response.responseText));
                     } else {
-                        reject(new Error(`Erreur ${response.status}`));
+                        reject(new Error(`HTTP ${response.status}`));
                     }
                 },
                 onerror: function(error) {
@@ -292,14 +330,14 @@
         overlay.innerHTML = `
             <div id="komga-modal">
                 <div id="komga-header">
-                    <button id="komga-back-btn">← Retour</button>
-                    <input type="text" id="komga-search-input" placeholder="Rechercher une série..." autofocus>
+                    <button id="komga-back-btn">${t.back}</button>
+                    <input type="text" id="komga-search-input" placeholder="${t.searchPlaceholder}" autofocus>
                     <button id="komga-close-btn">Esc</button>
                 </div>
                 <div id="komga-results">
-                    <div class="komga-empty">Tapez pour rechercher une série</div>
+                    <div class="komga-empty">${t.typeToSearch}</div>
                 </div>
-                <div id="komga-status">Ctrl+Y pour ouvrir | ↑↓ navigation | Enter sélectionner | Esc fermer</div>
+                <div id="komga-status">${t.statusBar}</div>
             </div>
         `;
 
@@ -354,7 +392,7 @@
                 renderSeriesList();
             })
             .catch(err => {
-                showError('Erreur de connexion à Komga: ' + err.message);
+                showError(t.connectionError + err.message);
             });
     }
 
@@ -363,7 +401,7 @@
         results.innerHTML = `
             <div id="komga-loading">
                 <div class="komga-spinner"></div>
-                Chargement...
+                ${t.loading}
             </div>
         `;
     }
@@ -377,7 +415,7 @@
         const results = document.querySelector('#komga-results');
 
         if (seriesData.length === 0) {
-            results.innerHTML = '<div class="komga-empty">Aucune série trouvée</div>';
+            results.innerHTML = `<div class="komga-empty">${t.noSeries}</div>`;
             return;
         }
 
@@ -386,7 +424,7 @@
                 <img class="komga-item-thumbnail" data-type="series" data-thumb-id="${series.id}" alt="">
                 <div class="komga-item-info">
                     <div class="komga-item-title">${escapeHtml(series.metadata.title)}</div>
-                    <div class="komga-item-meta">${series.booksCount} tome(s)</div>
+                    <div class="komga-item-meta">${t.volumes(series.booksCount)}</div>
                 </div>
             </div>
         `).join('');
@@ -415,7 +453,7 @@
         const backBtn = document.querySelector('#komga-back-btn');
 
         input.value = '';
-        input.placeholder = `Tomes de: ${currentSeriesName}`;
+        input.placeholder = t.booksOf(currentSeriesName);
         input.readOnly = true;
         backBtn.style.display = 'block';
 
@@ -427,7 +465,7 @@
                 renderBooksList();
             })
             .catch(err => {
-                showError('Erreur lors du chargement des tomes: ' + err.message);
+                showError(t.booksLoadError + err.message);
             });
     }
 
@@ -435,7 +473,7 @@
         const results = document.querySelector('#komga-results');
 
         if (booksData.length === 0) {
-            results.innerHTML = '<div class="komga-empty">Aucun tome trouvé</div>';
+            results.innerHTML = `<div class="komga-empty">${t.noBooks}</div>`;
             return;
         }
 
@@ -444,7 +482,7 @@
                 <img class="komga-item-thumbnail" data-type="books" data-thumb-id="${book.id}" alt="">
                 <div class="komga-item-info">
                     <div class="komga-item-title">${escapeHtml(book.metadata.title)}</div>
-                    <div class="komga-item-meta">${book.media.pagesCount} pages • ${book.size ? formatSize(book.size) : ''}</div>
+                    <div class="komga-item-meta">${book.media.pagesCount} ${t.pages} • ${book.size ? formatSize(book.size) : ''}</div>
                 </div>
                 <span class="komga-book-number">#${book.metadata.number || index + 1}</span>
             </div>
@@ -454,7 +492,7 @@
             loadThumbnail(img, img.dataset.type, img.dataset.thumbId);
         });
 
-        updateStatus(`${booksData.length} tome(s) - Ordre décroissant`);
+        updateStatus(t.booksStatus(booksData.length));
     }
 
     function goBackToSearch() {
@@ -467,12 +505,12 @@
         const backBtn = document.querySelector('#komga-back-btn');
 
         input.value = '';
-        input.placeholder = 'Rechercher une série...';
+        input.placeholder = t.searchPlaceholder;
         input.readOnly = false;
         backBtn.style.display = 'none';
 
         renderSeriesList();
-        updateStatus('Ctrl+Y pour ouvrir | ↑↓ navigation | Enter sélectionner | Esc fermer');
+        updateStatus(t.statusBar);
         input.focus();
     }
 
@@ -590,5 +628,5 @@
         }
     });
 
-    console.log('Komga Search loaded. Press Ctrl+Y to open.');
+    console.log(t.consoleLoaded);
 })();
