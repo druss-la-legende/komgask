@@ -15,7 +15,7 @@ Tampermonkey userscript for quick Komga series search with keyboard shortcut.
 ## Installation
 
 1. Install [Tampermonkey](https://www.tampermonkey.net/)
-2. Click on the script file: [komgask.js](komgask.js)
+2. Click on the script file: [komgask.user.js](komgask.user.js)
 3. Click "Raw" then "Install"
 
 ## Configuration
